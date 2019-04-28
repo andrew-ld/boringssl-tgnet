@@ -204,6 +204,8 @@ else()
     bcm.c
     is_fips.c
 
+    aes/aes_ige.c
+
     ${BCM_ASM_SOURCES}
   )
 

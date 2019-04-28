@@ -138,6 +138,15 @@ OPENSSL_EXPORT void AES_cfb128_encrypt(const uint8_t *in, uint8_t *out,
                                        size_t len, const AES_KEY *key,
                                        uint8_t *ivec, int *num, int enc);
 
+/* NB: the IV is _two_ blocks long */
+OPENSSL_EXPORT void AES_ige_encrypt(const unsigned char *in, unsigned char *out,
+                                    size_t length, const AES_KEY *key,
+                                    unsigned char *ivec, const int enc);
+/* NB: the IV is _four_ blocks long */
+OPENSSL_EXPORT void AES_bi_ige_encrypt(const unsigned char *in, unsigned char *out,
+                                       size_t length, const AES_KEY *key,
+                                       const AES_KEY *key2, const unsigned char *ivec,
+                                       const int enc);
 
 // AES key wrap.
 //

@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8.11)
+set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 # Report AppleClang separately from Clang. Their version numbers are different.
 # https://cmake.org/cmake/help/v3.0/policy/CMP0025.html
@@ -542,32 +543,7 @@ if(USE_CUSTOM_LIBCXX)
   target_link_libraries(libcxx libcxxabi)
 endif()
 
-# Add minimal googletest targets. The provided one has many side-effects, and
-# googletest has a very straightforward build.
-add_library(boringssl_gtest third_party/googletest/src/gtest-all.cc)
-target_include_directories(boringssl_gtest PRIVATE third_party/googletest)
-
-include_directories(third_party/googletest/include)
-
-# Declare a dummy target to build all unit tests. Test targets should inject
-# themselves as dependencies next to the target definition.
-add_custom_target(all_tests)
-
-add_custom_command(
-  OUTPUT crypto_test_data.cc
-  COMMAND ${GO_EXECUTABLE} run util/embed_test_data.go ${CRYPTO_TEST_DATA} >
-  ${CMAKE_CURRENT_BINARY_DIR}/crypto_test_data.cc
-  DEPENDS util/embed_test_data.go ${CRYPTO_TEST_DATA}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-
-add_library(crypto_test_data OBJECT crypto_test_data.cc)
-
 add_subdirectory(crypto)
-add_subdirectory(ssl)
-add_subdirectory(ssl/test)
-add_subdirectory(fipstools)
-add_subdirectory(tool)
-add_subdirectory(decrepit)
 
 if(FUZZ)
   if(LIBFUZZER_FROM_DEPS)
@@ -589,14 +565,3 @@ endif()
 if(UNIX AND NOT APPLE AND NOT ANDROID)
   set(HANDSHAKER_ARGS "-handshaker-path" $<TARGET_FILE:handshaker>)
 endif()
-
-add_custom_target(
-    run_tests
-    COMMAND ${GO_EXECUTABLE} run util/all_tests.go -build-dir
-            ${CMAKE_BINARY_DIR}
-    COMMAND cd ssl/test/runner &&
-            ${GO_EXECUTABLE} test -shim-path $<TARGET_FILE:bssl_shim>
-              ${HANDSHAKER_ARGS} ${RUNNER_ARGS}
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    DEPENDS all_tests bssl_shim handshaker
-    ${MAYBE_USES_TERMINAL})
